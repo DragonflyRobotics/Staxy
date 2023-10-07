@@ -52,11 +52,11 @@ fn paste() {
     send(&EventType::KeyRelease(Key::KeyV));
 }
 
-pub(crate) fn callback(event: Event, shiftPressed: &mut bool, ctrlPressed: &mut bool, stack: &mut Vec<String>, clipboard: &mut Clipboard, sender: Sender<Vec<String>>) {
-    // sender.send(vec!["lol".to_string()]).expect("oops");
-    // sender.send(vec!["lol2".to_string()]).expect("oops");
+pub(crate) fn callback(event: Event, ctrlPressed: &mut bool, stack: &mut Vec<String>, clipboard: &mut Clipboard, sender: Sender<Vec<String>>) {
+    sender.send(stack.clone()).expect("TODO: panic message");
     match event.event_type {
         EventType::KeyPress(Key::ScrollLock) => {
+            // println!("ScrlLK");
             if stack.len() > 0 {
                 clipboard.set_text(&stack[0]).unwrap();
                 println!("PASTED: {:?}", &stack[0]);
