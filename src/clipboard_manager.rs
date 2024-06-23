@@ -1,31 +1,31 @@
 use futures::executor::block_on;
-use std::{thread, time};
+use std::thread;
 use std::sync::mpsc::Sender;
 use arboard::Clipboard;
 
-use rdev::{listen, Event, EventType, Key, simulate};
+use rdev::{Event, EventType, Key, simulate};
 
-async fn clipboardManager(clipboard: &mut Clipboard, stack: &mut Vec<String>) {
-    println!("MANAGER");
-    // loop {
-        clipboardUpdater(clipboard, stack).await.to_vec();
-    //     println!("Clipboard: {:?}", stack);
-    //     thread::sleep(std::time::Duration::from_millis(1000));
-    // }
-
-}
+// async fn clipboard_manager(clipboard: &mut Clipboard, stack: &mut Vec<String>) {
+//     println!("MANAGER");
+//     // loop {
+//         clipboard_updater(clipboard, stack).await.to_vec();
+//     //     println!("Clipboard: {:?}", stack);
+//     //     thread::sleep(std::time::Duration::from_millis(1000));
+//     // }
 //
-async fn clipboardUpdater(clipboard: &mut Clipboard, stack: &mut Vec<String>) -> Vec<String> {
-    let mut stackReset = false;
+// }
+//
+async fn clipboard_updater(clipboard: &mut Clipboard, stack: &mut Vec<String>) -> Vec<String> {
+    let mut stack_reset = false;
     if stack.len() <= 0 {
-        stackReset = true;
+        stack_reset = true;
         stack.push(clipboard.get_text().unwrap());
     }
-    while (stack.len() > 0 && clipboard.get_text().unwrap() == stack[stack.len() - 1]) {
+    while stack.len() > 0 && clipboard.get_text().unwrap() == stack[stack.len() - 1] {
         // println!("Waiting for clipboard to change...");
         thread::sleep(std::time::Duration::from_millis(100));
     }
-    if stackReset {
+    if stack_reset {
         stack.remove(0);
     }
     stack.push(clipboard.get_text().unwrap());
@@ -33,10 +33,9 @@ async fn clipboardUpdater(clipboard: &mut Clipboard, stack: &mut Vec<String>) ->
 }
 
 fn send(event_type: &EventType) {
-    let delay = time::Duration::from_millis(20);
     match simulate(event_type) {
         Ok(()) => (),
-        Err(SimulateError) => {
+        Err(_simulate_error) => {
             println!("We could not send {:?}", event_type);
         }
     }
@@ -52,7 +51,7 @@ fn paste() {
     send(&EventType::KeyRelease(Key::KeyV));
 }
 
-pub(crate) fn callback(event: Event, ctrlPressed: &mut bool, stack: &mut Vec<String>, clipboard: &mut Clipboard, sender: Sender<Vec<String>>) {
+pub(crate) fn callback(event: Event, ctrl_pressed: &mut bool, stack: &mut Vec<String>, clipboard: &mut Clipboard, sender: Sender<Vec<String>>) {
     sender.send(stack.clone()).expect("TODO: panic message");
     match event.event_type {
         EventType::KeyPress(Key::ScrollLock) => {
@@ -66,30 +65,30 @@ pub(crate) fn callback(event: Event, ctrlPressed: &mut bool, stack: &mut Vec<Str
         }
 
         EventType::KeyPress(Key::Escape) => {
-            if ctrlPressed == &true
+            if ctrl_pressed == &true
             {
                 println!("CTRL + Esc pressed");
                 println!("ClipboardESC: {:?}", stack);
-                stack.retain(|x| false);
+                stack.retain(|_x| false);
                 println!("ClipboardESC: {:?}", stack);
 
             }
         }
 
         EventType::KeyPress(Key::KeyC) => {
-            if ctrlPressed == &true
+            if ctrl_pressed == &true
             {
                 println!("CTRL + C pressed");
-                block_on(clipboardUpdater(clipboard, stack));
+                block_on(clipboard_updater(clipboard, stack));
                 println!("Clipboard: {:?}", stack);
             }
         }
 
         EventType::KeyPress(Key::ControlLeft) => {
-            *ctrlPressed = true;
+            *ctrl_pressed = true;
         }
         EventType::KeyRelease(Key::ControlLeft) => {
-            *ctrlPressed = false;
+            *ctrl_pressed = false;
         }
         _ => {}
     }
