@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 arboard = "3.2.1"
 futures = "0.3.28"
-gtk = { version = "0.8.2", package = "gtk4", features = ["v4_14"] }
+gtk4 = "0.8.2"
 rdev = "0.5.3"
 
 
